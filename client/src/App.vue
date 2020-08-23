@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import CalculatorMainPanel from './components/CalculatorMainPanel';
+import CalculatorMainPanel from './components/Calculator/CalculatorMainPanel';
 
 export default {
   name: 'App',
