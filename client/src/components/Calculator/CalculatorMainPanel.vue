@@ -4,7 +4,9 @@
     max-width="calc(28.5% - 49px)"
   >
     <v-card-text>
-      <CalculatorResult />
+      <CalculatorResult
+        :result="result"
+      />
 
       <v-tabs v-model="tab">
         <v-tab key="keys">Teclas</v-tab>
@@ -13,11 +15,15 @@
       
       <v-tabs-items v-model="tab">
         <v-tab-item key="keys">
-          <CalculatorKeys />
+          <CalculatorKeys
+            @key-change="handleCalculation"
+          />
         </v-tab-item>
 
         <v-tab-item key="inputs">
-          <CalculatorInput />
+          <CalculatorInput
+            @input-change="handleCalculation"
+          />
         </v-tab-item>
       </v-tabs-items>
     </v-card-text>
@@ -40,7 +46,18 @@ export default {
 
   data: () => ({
     tab: 'keys',
-  })
+    result: 0,
+  }),
+
+  methods: {
+    handleCalculation(param) {
+      if (typeof param === 'object') {
+        console.log(param);
+      } else {
+        console.log(param);
+      }
+    },
+  }
 };
 </script>
 

@@ -13,6 +13,7 @@
             :class="{ [$style.zero]: key === '0' }"
             x-large
             color="primary"
+            @click="$emit('key-change', key)"
           >
             {{ key }}
           </v-btn>
