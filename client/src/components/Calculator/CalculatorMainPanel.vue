@@ -31,6 +31,7 @@
 </template>
 
 <script>
+import cloneDeep from 'lodash.clonedeep';
 import CalculatorInput from './CalculatorInput';
 import CalculatorKeys from './CalculatorKeys';
 import CalculatorResult from './CalculatorResult';
@@ -81,15 +82,22 @@ export default {
     },
 
     handleCalculation(param) {
-      if (typeof param === 'object') {
-        console.log(param);
-      } else {
-        //
+      let paramCloned = cloneDeep(param);
+      if (typeof paramCloned === 'object') {
+        const {
+          number1,
+          number2,
+          operator,
+        } = paramCloned;
+
+        this.currentOperation = [number1, operator, number2];
+        this.pendingOperation = true;
+        paramCloned = '=';
       }
 
       let currentOperation;
       let currentResult;
-      switch(param) {
+      switch(paramCloned) {
         case 'AC':
           this.resetValues();
           break;

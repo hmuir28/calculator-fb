@@ -28,13 +28,13 @@
         sm="8"
       >
         <v-btn
-          v-for="key in specialKeys"
-          :key="key"
-          :class="$style.btnKey"
+          v-for="operator in mathOperators"
+          :key="operator"
+          :class="$style.btnOperator"
           large
-          @click="handleEmitter(key)"
+          @click="handleEmitter(operator)"
         >
-          {{ key }}
+          {{ operator }}
         </v-btn>
       </v-col>
     </v-row>
@@ -46,7 +46,7 @@ export default {
   name: 'CalculatorInput',
 
   data: () => ({
-    specialKeys: [
+    mathOperators: [
       '%',
       '/',
       'x',
@@ -61,25 +61,26 @@ export default {
   }),
   
   methods: {
-    handleEmitter(key) {
-      if (key === '=') this.$emit('input-change', {
+    handleEmitter(operator) {
+      if ((!this.number1 || !this.number2) && operator !== '%') return;
+
+      this.$emit('input-change', {
         number1: isNaN(this.number1) ? 0 : +this.number1,
         number2: isNaN(this.number2) ? 0 : +this.number2,
+        operator,
       });
-      
-      // TODO: Add logic for other operators
     }
   }
 }
 </script>
 
 <style module>
-.btnKey {
+.btnOperator {
   background-color: #565b6e !important;
   border-radius: 0 !important;
 }
 
-.btnKey span {
+.btnOperator span {
   color: #fff !important;
 }
 </style>
