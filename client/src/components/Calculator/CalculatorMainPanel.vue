@@ -68,6 +68,18 @@ export default {
       return arithmeticOperator[operationType](+num1, +num2);
     },
 
+    commonMathOperations(operator) {
+      // eslint-disable-next-line
+      const { currentOperation, currentResult } = this.handleMathOperation(
+        this.currentOperation,
+        this.result,
+        operator,
+      );
+
+      this.currentOperation = currentOperation;
+      this.result = currentResult;
+    },
+
     handleCalculation(param) {
       if (typeof param === 'object') {
         console.log(param);
@@ -79,6 +91,7 @@ export default {
       let currentResult;
       switch(param) {
         case 'AC':
+          this.resetValues();
           break;
         case '±':
           if (this.currentOperation.length <= 1) {
@@ -95,15 +108,7 @@ export default {
           break;
         case '%':
           if (this.currentOperation.length === 2) {
-            const [num1] = this.currentOperation;
-            currentOperation = [...this.currentOperation, num1];
-            ({ currentOperation, currentResult } = this.handleMathResult(
-              currentOperation,
-              this.result,
-            ));
-
-            this.currentOperation = currentOperation;
-            this.result = currentResult;
+            this.handlePreCompleteOperation();
           }
 
           // eslint-disable-next-line
@@ -117,48 +122,16 @@ export default {
           this.result = currentResult;
           break;
         case 'x':
-          // eslint-disable-next-line
-          ({ currentOperation, currentResult } = this.handleMathOperation(
-            this.currentOperation,
-            this.result,
-            'x',
-          ));
-
-          this.currentOperation = currentOperation;
-          this.result = currentResult;
+          this.commonMathOperations('x');
           break;
         case '/':
-          // eslint-disable-next-line
-          ({ currentOperation, currentResult } = this.handleMathOperation(
-            this.currentOperation,
-            this.result,
-            '/',
-          ));
-
-          this.currentOperation = currentOperation;
-          this.result = currentResult;
+          this.commonMathOperations('/');
           break;
         case '-':
-          // eslint-disable-next-line
-          ({ currentOperation, currentResult } = this.handleMathOperation(
-            this.currentOperation,
-            this.result,
-            '-',
-          ));
-
-          this.currentOperation = currentOperation;
-          this.result = currentResult;
+          this.commonMathOperations('-');
           break;
         case '+':
-          // eslint-disable-next-line
-          ({ currentOperation, currentResult } = this.handleMathOperation(
-            this.currentOperation,
-            this.result,
-            '+',
-          ));
-
-          this.currentOperation = currentOperation;
-          this.result = currentResult
+          this.commonMathOperations('+');
           break;
         case '=':
           if (this.pendingOperation) {
@@ -170,15 +143,7 @@ export default {
             this.currentOperation = currentOperation;
             this.result = currentResult;
           } else if (this.currentOperation.length === 2) {
-            const [num1] = this.currentOperation;
-            currentOperation = [...this.currentOperation, num1];
-            ({ currentOperation, currentResult } = this.handleMathResult(
-              currentOperation,
-              this.result,
-            ));
-
-            this.currentOperation = currentOperation;
-            this.result = currentResult;
+            this.handlePreCompleteOperation();
           }
 
           this.pendingOperation = this.currentOperation.length === 3;
@@ -208,6 +173,21 @@ export default {
           this.pendingOperation = this.currentOperation.length === 3;
           break;
       }
+    },
+
+    handlePreCompleteOperation() {
+      let currentOperation;
+      let currentResult;
+
+      const [num1] = this.currentOperation;
+      currentOperation = [...this.currentOperation, num1];
+      ({ currentOperation, currentResult } = this.handleMathResult(
+        currentOperation,
+        this.result,
+      ));
+
+      this.currentOperation = currentOperation;
+      this.result = currentResult;
     },
     
     handleMathOperation(currentOperation, currentResult, mathSymbol) {
@@ -249,6 +229,7 @@ export default {
     handleMathResult(currentOperation, currentResult, mathSymbol = null) {
       const operator = mathSymbol || currentOperation.find(item => ['+', '-', '/', 'x', '%'].includes(item));
       const { result } = this.resultOperator(currentOperation, operator);
+
       currentResult = result;
       currentOperation = [currentResult];
       this.operatorSelected = false;
@@ -257,6 +238,13 @@ export default {
         currentOperation,
         currentResult,
       }
+    },
+
+    resetValues() {
+      this.currentOperation = [];
+      this.operatorSelected = false;
+      this.pendingOperation = false;
+      this.result = '';
     },
 
     resultOperator(currentOperation, operator) {
