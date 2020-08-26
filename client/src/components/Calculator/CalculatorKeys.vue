@@ -13,7 +13,7 @@
             :class="{ [$style.zero]: key === '0' }"
             x-large
             color="primary"
-            @click="$emit('key-change', key)"
+            @click="emitKeys(key)"
           >
             {{ key }}
           </v-btn>
@@ -50,6 +50,13 @@ export default {
       '=',
     ]
   }),
+
+  methods: {
+    emitKeys(key) {
+      const value = isNaN(key) ? key : +key;
+      this.$emit('key-change', value);
+    }
+  }
 }
 </script>
 

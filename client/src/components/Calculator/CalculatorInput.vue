@@ -47,7 +47,6 @@ export default {
 
   data: () => ({
     specialKeys: [
-      '=',
       '%',
       '/',
       'x',
@@ -77,7 +76,7 @@ export default {
 <style module>
 .btnKey {
   background-color: #565b6e !important;
-  border-radius: 0;
+  border-radius: 0 !important;
 }
 
 .btnKey span {

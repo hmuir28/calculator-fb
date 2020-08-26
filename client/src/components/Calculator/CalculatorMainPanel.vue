@@ -45,18 +45,230 @@ export default {
   },
 
   data: () => ({
+    buildOperation: '',
+    currentOperation: [],
+    operatorSelected: false,
+    pendingOperation: false,
+    result: '',
     tab: 'keys',
-    result: 0,
   }),
 
   methods: {
+    calculateOperation(operationBuilt, operationType) {
+      const [num1, num2] = operationBuilt.split(operationType);
+      
+      const arithmeticOperator = {
+        '+': (x, y) => x + y,
+        '-': (x, y) => x - y,
+        'x': (x, y) => x * y,
+        '/': (x, y) => x / y,
+        '%': (x) => x / 100, 
+      };
+
+      return arithmeticOperator[operationType](+num1, +num2);
+    },
+
     handleCalculation(param) {
       if (typeof param === 'object') {
         console.log(param);
       } else {
-        console.log(param);
+        //
+      }
+
+      let currentOperation;
+      let currentResult;
+      switch(param) {
+        case 'AC':
+          break;
+        case '±':
+          if (this.currentOperation.length <= 1) {
+            let num = this.currentOperation.shift();
+            num = -num;
+            this.currentOperation.unshift(num);
+          } else if (this.currentOperation.length === 3) {
+            let num = this.currentOperation.pop();
+            num = -num;
+            this.currentOperation.push(num);
+          }
+
+          this.result = String(-this.result);
+          break;
+        case '%':
+          if (this.currentOperation.length === 2) {
+            const [num1] = this.currentOperation;
+            currentOperation = [...this.currentOperation, num1];
+            ({ currentOperation, currentResult } = this.handleMathResult(
+              currentOperation,
+              this.result,
+            ));
+
+            this.currentOperation = currentOperation;
+            this.result = currentResult;
+          }
+
+          // eslint-disable-next-line
+          ({ currentOperation, currentResult } = this.handleMathResult(
+            this.currentOperation,
+            this.result,
+            '%',
+          ));
+
+          this.currentOperation = currentOperation;
+          this.result = currentResult;
+          break;
+        case 'x':
+          // eslint-disable-next-line
+          ({ currentOperation, currentResult } = this.handleMathOperation(
+            this.currentOperation,
+            this.result,
+            'x',
+          ));
+
+          this.currentOperation = currentOperation;
+          this.result = currentResult;
+          break;
+        case '/':
+          // eslint-disable-next-line
+          ({ currentOperation, currentResult } = this.handleMathOperation(
+            this.currentOperation,
+            this.result,
+            '/',
+          ));
+
+          this.currentOperation = currentOperation;
+          this.result = currentResult;
+          break;
+        case '-':
+          // eslint-disable-next-line
+          ({ currentOperation, currentResult } = this.handleMathOperation(
+            this.currentOperation,
+            this.result,
+            '-',
+          ));
+
+          this.currentOperation = currentOperation;
+          this.result = currentResult;
+          break;
+        case '+':
+          // eslint-disable-next-line
+          ({ currentOperation, currentResult } = this.handleMathOperation(
+            this.currentOperation,
+            this.result,
+            '+',
+          ));
+
+          this.currentOperation = currentOperation;
+          this.result = currentResult
+          break;
+        case '=':
+          if (this.pendingOperation) {
+            ({ currentOperation, currentResult } = this.handleMathResult(
+              this.currentOperation,
+              this.result,
+            ));
+
+            this.currentOperation = currentOperation;
+            this.result = currentResult;
+          } else if (this.currentOperation.length === 2) {
+            const [num1] = this.currentOperation;
+            currentOperation = [...this.currentOperation, num1];
+            ({ currentOperation, currentResult } = this.handleMathResult(
+              currentOperation,
+              this.result,
+            ));
+
+            this.currentOperation = currentOperation;
+            this.result = currentResult;
+          }
+
+          this.pendingOperation = this.currentOperation.length === 3;
+          break;
+        default:
+          if (this.operatorSelected) {
+            this.result = '';
+            this.operatorSelected = false;
+          }
+
+          if (param === '.' && this.result.includes('.')) break;
+
+          this.result += String(param);
+          if (this.result.length === 1 && this.result.startsWith('.')) {
+            this.result = '0' + this.result;
+          }
+
+          if (!this.currentOperation.length) {
+            this.currentOperation.push(param);
+          } else if (this.currentOperation.length === 1 || this.currentOperation.length === 3) {
+            this.currentOperation.pop();
+            this.currentOperation.push(+this.result);
+          } else if (this.currentOperation.length === 2) {
+            this.currentOperation.push(+this.result);
+          }
+
+          this.pendingOperation = this.currentOperation.length === 3;
+          break;
       }
     },
+    
+    handleMathOperation(currentOperation, currentResult, mathSymbol) {
+      if (this.pendingOperation) {
+        return this.handleMathResult(
+          currentOperation,
+          currentResult,
+          mathSymbol,
+        );
+      }
+
+      this.operatorSelected = true;
+      if (!currentOperation.length) {
+        return {
+          currentOperation: ['0', mathSymbol],
+          currentResult,
+        };
+      }
+
+      // eslint-disable-next-line
+      const [, operator] = currentOperation;
+      if (operator === mathSymbol) return { currentOperation, currentResult };
+
+      if (!currentOperation.includes(mathSymbol)) {
+        currentOperation = [...currentOperation, mathSymbol];
+      } else {
+        this.operatorSelected = false;
+        currentOperation = [...currentOperation, currentResult];
+      }
+
+      this.pendingOperation = currentOperation.length === 3;
+
+      return {
+        currentOperation,
+        currentResult,
+      };
+    },
+
+    handleMathResult(currentOperation, currentResult, mathSymbol = null) {
+      const operator = mathSymbol || currentOperation.find(item => ['+', '-', '/', 'x', '%'].includes(item));
+      const { result } = this.resultOperator(currentOperation, operator);
+      currentResult = result;
+      currentOperation = [currentResult];
+      this.operatorSelected = false;
+
+      return {
+        currentOperation,
+        currentResult,
+      }
+    },
+
+    resultOperator(currentOperation, operator) {
+      const operationResult = this.calculateOperation(
+        currentOperation.join(''),
+        operator,
+      );
+
+      return {
+        result: String(operationResult),
+      };
+    }
   }
 };
 </script>
