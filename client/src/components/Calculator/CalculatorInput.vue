@@ -42,16 +42,27 @@
 </template>
 
 <script>
+import CalculatorConsts from '../../util/Constants/CalculatorConstants';
+const {
+  AC,
+  percentage,
+  multiply,
+  division,
+  addition,
+  subtract,
+} = CalculatorConsts;
+
 export default {
   name: 'CalculatorInput',
 
   data: () => ({
     mathOperators: [
-      '%',
-      '/',
-      'x',
-      '-',
-      '+',
+      AC,
+      percentage,
+      division,
+      multiply,
+      subtract,
+      addition,
     ],
     number1: '',
     number2: '',

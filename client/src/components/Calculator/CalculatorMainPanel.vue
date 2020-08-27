@@ -35,6 +35,19 @@ import cloneDeep from 'lodash.clonedeep';
 import CalculatorInput from './CalculatorInput';
 import CalculatorKeys from './CalculatorKeys';
 import CalculatorResult from './CalculatorResult';
+import CalculatorConsts from '../../util/Constants/CalculatorConstants';
+
+const {
+  AC,
+  negacion,
+  percentage,
+  multiply,
+  division,
+  addition,
+  subtract,
+  equal,
+  point,
+} = CalculatorConsts;
 
 export default {
   name: 'CalculatorMainPanel',
@@ -55,21 +68,7 @@ export default {
   }),
 
   methods: {
-    calculateOperation(operationBuilt, operationType) {
-      const [num1, num2] = operationBuilt.split(operationType);
-      
-      const arithmeticOperator = {
-        '+': (x, y) => x + y,
-        '-': (x, y) => x - y,
-        'x': (x, y) => x * y,
-        '/': (x, y) => x / y,
-        '%': (x) => x / 100, 
-      };
-
-      return arithmeticOperator[operationType](+num1, +num2);
-    },
-
-    commonMathOperations(operator) {
+    basicMathOperations(operator) {
       // eslint-disable-next-line
       const { currentOperation, currentResult } = this.handleMathOperation(
         this.currentOperation,
@@ -81,6 +80,20 @@ export default {
       this.result = currentResult;
     },
 
+    calculateOperation(operationBuilt, operationType) {
+      const [num1, num2] = operationBuilt.split(operationType);
+      
+      const arithmeticOperator = {
+        [addition]: (x, y) => x + y,
+        [subtract]: (x, y) => x - y,
+        [multiply]: (x, y) => x * y,
+        [division]: (x, y) => x / y,
+        [percentage]: (x) => x / 100, 
+      };
+
+      return arithmeticOperator[operationType](+num1, +num2);
+    },
+
     handleCalculation(param) {
       let paramCloned = cloneDeep(param);
       if (typeof paramCloned === 'object') {
@@ -90,18 +103,22 @@ export default {
           operator,
         } = paramCloned;
 
-        this.currentOperation = [number1, operator, number2];
-        this.pendingOperation = true;
-        paramCloned = '=';
+        if (operator !== AC) {
+          this.currentOperation = [number1, operator, number2];
+          this.pendingOperation = true;
+          paramCloned = equal;
+        } else {
+          paramCloned = AC;
+        }
       }
 
       let currentOperation;
       let currentResult;
       switch(paramCloned) {
-        case 'AC':
+        case AC:
           this.resetValues();
           break;
-        case '±':
+        case negacion:
           if (this.currentOperation.length <= 1) {
             let num = this.currentOperation.shift();
             num = -num;
@@ -114,7 +131,7 @@ export default {
 
           this.result = String(-this.result);
           break;
-        case '%':
+        case percentage:
           if (this.currentOperation.length === 2) {
             this.handlePreCompleteOperation();
           }
@@ -123,25 +140,25 @@ export default {
           ({ currentOperation, currentResult } = this.handleMathResult(
             this.currentOperation,
             this.result,
-            '%',
+            percentage,
           ));
 
           this.currentOperation = currentOperation;
           this.result = currentResult;
           break;
-        case 'x':
-          this.commonMathOperations('x');
+        case multiply:
+          this.basicMathOperations(multiply);
           break;
-        case '/':
-          this.commonMathOperations('/');
+        case division:
+          this.basicMathOperations(division);
           break;
-        case '-':
-          this.commonMathOperations('-');
+        case subtract:
+          this.basicMathOperations(subtract);
           break;
-        case '+':
-          this.commonMathOperations('+');
+        case addition:
+          this.basicMathOperations(addition);
           break;
-        case '=':
+        case equal:
           if (this.pendingOperation) {
             ({ currentOperation, currentResult } = this.handleMathResult(
               this.currentOperation,
@@ -162,10 +179,10 @@ export default {
             this.operatorSelected = false;
           }
 
-          if (param === '.' && this.result.includes('.')) break;
+          if (param === point && this.result.includes(point)) break;
 
           this.result += String(param);
-          if (this.result.length === 1 && this.result.startsWith('.')) {
+          if (this.result.length === 1 && this.result.startsWith(point)) {
             this.result = '0' + this.result;
           }
 
@@ -235,7 +252,15 @@ export default {
     },
 
     handleMathResult(currentOperation, currentResult, mathSymbol = null) {
-      const operator = mathSymbol || currentOperation.find(item => ['+', '-', '/', 'x', '%'].includes(item));
+      const operator = mathSymbol || currentOperation.find(item => {
+        return [
+          addition,
+          subtract,
+          division,
+          multiply,
+          percentage
+        ].includes(item);
+      });
       const { result } = this.resultOperator(currentOperation, operator);
 
       currentResult = result;
