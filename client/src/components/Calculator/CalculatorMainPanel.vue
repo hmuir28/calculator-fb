@@ -59,9 +59,10 @@ export default {
   },
 
   data: () => ({
-    buildOperation: '',
+    buildTree: {},
     currentOperation: [],
     operatorSelected: false,
+    operations: [],
     pendingOperation: false,
     result: '',
     tab: 'keys',
@@ -94,17 +95,73 @@ export default {
       return arithmeticOperator[operationType](+num1, +num2);
     },
 
+    calculatePreCompleteOperation() {
+      let currentOperation;
+      let currentResult;
+
+      const [firstNumber] = this.currentOperation;
+      currentOperation = [...this.currentOperation, firstNumber];
+      this.operations = this.getOperationStructureToBuildTree(currentOperation);
+
+      ({ currentOperation, currentResult } = this.handleMathResult(
+        currentOperation,
+        this.result,
+      ));
+
+      this.buildTreeByOperations(this.operations);
+      this.currentOperation = currentOperation;
+      this.result = currentResult;
+    },
+
+    getOperationStructureToBuildTree(operations) {
+      const traverseOperations = (arr) => (
+        arr.reduce((acc, curr) => {
+          const token = curr;
+          if ([addition, subtract, division, multiply].includes(curr)) {
+            let weight;
+
+            switch (curr) {
+              case multiply:
+                weight = 1;
+                break;
+              case division:
+                weight = 1;
+                break;
+              case addition:
+                weight = 2;
+                break;
+              case subtract:
+                weight = 2;
+                break;
+            }
+            
+            acc.push({ token, weight });
+          } else {
+            acc.push({ token, weight: 3 });
+          }
+        }, [])
+      );
+
+      if (!this.operations.length) {
+        return traverseOperations(operations);
+      }
+      
+      const [, operator, secondNumber] = operations;
+      return traverseOperations([...this.operations, operator, secondNumber]);
+    },
+
     handleCalculation(param) {
       let paramCloned = cloneDeep(param);
       if (typeof paramCloned === 'object') {
-        const {
-          number1,
-          number2,
-          operator,
-        } = paramCloned;
+        const { operator } = paramCloned;
 
         if (operator !== AC) {
+          const {
+            number1,
+            number2,
+          } = paramCloned;
           this.currentOperation = [number1, operator, number2];
+          this.operations = [...this.currentOperation];
           this.pendingOperation = true;
           paramCloned = equal;
         } else {
@@ -133,7 +190,7 @@ export default {
           break;
         case percentage:
           if (this.currentOperation.length === 2) {
-            this.handlePreCompleteOperation();
+            this.calculatePreCompleteOperation();
           }
 
           // eslint-disable-next-line
@@ -165,10 +222,12 @@ export default {
               this.result,
             ));
 
+            this.operations = this.getOperationStructureToBuildTree(this.currentOperation);
+            this.buildTreeByOperations(this.operations);
             this.currentOperation = currentOperation;
             this.result = currentResult;
           } else if (this.currentOperation.length === 2) {
-            this.handlePreCompleteOperation();
+            this.calculatePreCompleteOperation();
           }
 
           this.pendingOperation = this.currentOperation.length === 3;
@@ -198,21 +257,6 @@ export default {
           this.pendingOperation = this.currentOperation.length === 3;
           break;
       }
-    },
-
-    handlePreCompleteOperation() {
-      let currentOperation;
-      let currentResult;
-
-      const [num1] = this.currentOperation;
-      currentOperation = [...this.currentOperation, num1];
-      ({ currentOperation, currentResult } = this.handleMathResult(
-        currentOperation,
-        this.result,
-      ));
-
-      this.currentOperation = currentOperation;
-      this.result = currentResult;
     },
     
     handleMathOperation(currentOperation, currentResult, mathSymbol) {
@@ -293,7 +337,3 @@ export default {
   }
 };
 </script>
-
-<style>
-
-</style>
