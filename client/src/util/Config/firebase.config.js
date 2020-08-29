@@ -2,7 +2,7 @@ import * as firebase from 'firebase/app'
 import 'firebase/auth'
 import 'firebase/firestore'
 
-// firebase init - add your own config here
+// firebase init - configuration credentials
 const firebaseConfig = {
   apiKey: 'AIzaSyBL5G_g4WIWZ-bzgFZwhednd6oncBHMPwE',
   databaseURL: 'https://calculator-b25f2.firebaseio.com',

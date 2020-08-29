@@ -5,7 +5,7 @@
     :items="items"
     :items-per-page="5"
     class="elevation-1"
-  ></v-data-table>
+  />
 </template>
 
 <script>
@@ -25,7 +25,13 @@ export default {
       { text: 'Operador', value: 'operator' },
       { text: 'Número 2', value: 'num2' },
     ],
-  })
+  }),
+
+  watch: {
+    items() {
+
+    }
+  }
 }
 </script>
 

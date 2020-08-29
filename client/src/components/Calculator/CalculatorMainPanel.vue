@@ -1,5 +1,5 @@
 <template>
-    <v-container>
+    <v-container :class="$style.mainPanelContainer">
     <v-row>
       <v-col :md="6">
         <v-card
@@ -10,7 +10,10 @@
               :result="result"
             />
 
-            <v-tabs v-model="tab">
+            <v-tabs 
+              v-model="tab"
+              :class="$style.tabsList"
+            >
               <v-tab key="keys">Teclas</v-tab>
               <v-tab key="inputs">Ingresar</v-tab>
             </v-tabs>
@@ -70,6 +73,13 @@ export default {
   },
 
   data: () => ({
+    arithmeticOperators: {
+      [addition]: (x, y) => x + y,
+      [subtract]: (x, y) => x - y,
+      [multiply]: (x, y) => x * y,
+      [division]: (x, y) => x / y,
+      [percentage]: (x) => x / 100, 
+    },
     buildTree: {},
     currentOperation: [],
     operatorSelected: false,
@@ -83,7 +93,7 @@ export default {
   }),
 
   async mounted() {
-    await this.fetchOperations();
+    await this.handleMounted();
   },
 
   methods: {
@@ -105,18 +115,20 @@ export default {
       this.result = currentResult;
     },
 
-    calculateOperation(operationBuilt, { operator: operationType }) {
-      const [{ num: num1 }, { num: num2 }] = operationBuilt.filter((op) => !op.operator);
+    calculateOperation(operationBuilt, operationType) {
+      const numbers = operationBuilt.filter((op) => !op.operator);
       
-      const arithmeticOperator = {
-        [addition]: (x, y) => x + y,
-        [subtract]: (x, y) => x - y,
-        [multiply]: (x, y) => x * y,
-        [division]: (x, y) => x / y,
-        [percentage]: (x) => x / 100, 
-      };
+      let num1;
+      let num2;
 
-      return arithmeticOperator[operationType](+num1, +num2);
+      if (numbers.length === 2) {
+        [{ num: num1 }, { num: num2 }] = numbers;
+      } else {
+        [{ num: num1 }] = numbers;
+      }
+
+      const operator = operationType.operator || operationType;
+      return this.arithmeticOperators[operator](+num1, +num2);
     },
 
     async calculateInCompleteOperation() {
@@ -138,7 +150,8 @@ export default {
     },
 
     getOperationStructureTransformed(operations) {
-      const transformOperationsStructure = () => {
+      // TODO: move out of this method since it is too large to be closure
+      const transformOperationStructure = () => {
         let incrementNumId = 1;
         let iterate = 0;
         const operationsArray = [];
@@ -164,11 +177,11 @@ export default {
       };
 
       if (!this.operations.length) {
-        return transformOperationsStructure(operations);
+        return transformOperationStructure(operations);
       }
       
       const [firstNumber, operator, secondNumber] = operations;
-      return transformOperationsStructure([
+      return transformOperationStructure([
         ...this.operations,
         firstNumber,
         operator,
@@ -208,7 +221,7 @@ export default {
       let currentResult;
       switch(paramCloned) {
         case AC:
-          this.resetValues();
+          await this.resetValues();
           break;
         case negacion:
           if (this.currentOperation.length <= 1) {
@@ -341,6 +354,7 @@ export default {
           percentage
         ].includes(item.operator);
       });
+
       const { result } = this.getResultOperation(currentOperation, operator);
 
       currentResult = result;
@@ -353,12 +367,24 @@ export default {
       }
     },
 
-    resetValues() {
+    async handleMounted() {
+      await this.fetchOperations();
+
+      if (!this.operations.length) { return; }
+
+      const { num1, operator, num2 } = this.operations[this.operations.length - 1];
+      const operationResult = this.arithmeticOperators[operator](+num1, +num2); 
+
+      this.currentOperation.push({ num: operationResult });
+      this.result = String(operationResult);
+    },
+
+    async resetValues() {
       this.currentOperation = [];
       this.operatorSelected = false;
       this.pendingOperation = false;
       this.result = '';
-      this.resetOperations();
+      await this.resetOperations();
     },
 
     getResultOperation(currentOperation, operator) {
@@ -377,5 +403,13 @@ export default {
 <style module>
 .calculatorCard {
   width: 75%;
+}
+
+.mainPanelContainer {
+  margin-top: calc(15% - 100px);
+}
+
+.tabsList {
+  padding-left: 12px;
 }
 </style>

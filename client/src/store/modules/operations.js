@@ -34,11 +34,11 @@ const actions = {
 
 // mutations
 const mutations = {
-  RESET_STATE() {
+  RESET_STATE(state) {
     state.operations = [];
   },
 
-  SET_OPERATIONS (state, operations) {
+  SET_OPERATIONS(state, operations) {
     state.operations = [...state.operations, ...operations];
   },
 }
