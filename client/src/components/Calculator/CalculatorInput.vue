@@ -73,13 +73,13 @@ export default {
   
   methods: {
     handleEmitter(operator) {
-      if ((!this.number1 || !this.number2) && operator !== '%') return;
-
-      this.$emit('input-change', {
-        number1: isNaN(this.number1) ? 0 : +this.number1,
-        number2: isNaN(this.number2) ? 0 : +this.number2,
-        operator,
-      });
+      if (((operator === '%' && (this.number1)) || (this.number1 && this.number2)) || operator === AC) {
+        this.$emit('input-change', {
+          number1: isNaN(this.number1) ? 0 : +this.number1,
+          number2: isNaN(this.number2) ? 0 : +this.number2,
+          operator,
+        });
+      }
     }
   }
 }

@@ -17,12 +17,19 @@ const actions = {
     commit('SET_OPERATIONS', operations);
   },
 
-  async updateOperations ({ commit, state }, operations) {
+  async updateOperations({ commit, state }, operations) {
     commit('SET_OPERATIONS', operations);
     await operationsCollection.doc('operation').set({
       operations: state.operations,
     });
   },
+
+  async resetOperations({ commit }) {
+    commit('RESET_STATE');
+    await operationsCollection.doc('operation').set({
+      operations: [],
+    });
+  }
 }
 
 // mutations

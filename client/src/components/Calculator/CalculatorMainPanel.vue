@@ -90,6 +90,7 @@ export default {
     ...mapActions('operations', [
       'fetchOperations',
       'updateOperations',
+      'resetOperations',
     ]),
 
     basicMathOperations(operator) {
@@ -144,7 +145,7 @@ export default {
         const operationObj = {};
 
         operations.forEach((operation) => {
-          if (operation.num) {
+          if (operation.num || operation.num === 0) {
             operationObj[`num${incrementNumId}`] = operation.num;
             incrementNumId += 1;
           } else {
@@ -175,6 +176,8 @@ export default {
       ]);
     },
 
+    // this method handles the heaviest logic
+    // TODO: Future work might involve splitting this method in different chunks
     async handleCalculation(param) {
       let paramCloned = cloneDeep(param);
       if (typeof paramCloned === 'object') {
@@ -194,7 +197,6 @@ export default {
             num: number2 
           }];
 
-          this.operations = [...this.currentOperation];
           this.pendingOperation = true;
           paramCloned = equal;
         } else {
@@ -356,6 +358,7 @@ export default {
       this.operatorSelected = false;
       this.pendingOperation = false;
       this.result = '';
+      this.resetOperations();
     },
 
     getResultOperation(currentOperation, operator) {
