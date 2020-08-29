@@ -2,7 +2,7 @@
   <v-container>
     <v-row>
       <v-col
-        cols="12"
+        :cols="columnConsts.twelve"
       >
         <span
           :class="$style.result"
@@ -14,6 +14,8 @@
 </template>
 
 <script>
+import { columnConsts } from '../../util/Constants/SettingsConstants';
+
 export default {
   name: 'CalculatorResult',
 
@@ -23,6 +25,10 @@ export default {
       default: '0', // TODO: check this out, why isn't it working?
     }
   },
+
+  data: () => ({
+    columnConsts,
+  }),
 
   computed: {
     fontStylesByResultLen() {

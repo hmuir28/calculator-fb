@@ -5,8 +5,8 @@
         v-for="(key, index) in keys"
         :key="key"
         :class="$style.key"
-        :cols="index < 16 ? '12' : null"
-        :sm="index < 16 ? '3' : null"
+        :cols="index < 16 ? columnConsts.twelve : null"
+        :sm="index < 16 ? columnConsts.three : null"
       >
         <div>
           <v-btn
@@ -24,10 +24,13 @@
 </template>
 
 <script>
+import { columnConsts } from '../../util/Constants/SettingsConstants';
+
 export default {
   name: 'CalculatorKeys',
 
   data: () => ({
+    columnConsts,
     keys: [
       'AC',
       '±',

@@ -2,7 +2,7 @@
   <v-container :class="$style.inputContainer">
     <v-row>
       <v-col
-        cols="12"
+        :cols="columnConsts.twelve"
         sm="12"
       >
         <v-text-field
@@ -13,7 +13,7 @@
       </v-col>
 
       <v-col
-        cols="12"
+        :cols="columnConsts.twelve"
         sm="12"
       >
         <v-text-field
@@ -24,7 +24,7 @@
       </v-col>
 
       <v-col
-        cols="12"
+        :cols="columnConsts.twelve"
         sm="8"
       >
         <v-btn
@@ -43,6 +43,8 @@
 
 <script>
 import CalculatorConsts from '../../util/Constants/CalculatorConstants';
+import { columnConsts } from '../../util/Constants/SettingsConstants';
+
 const {
   AC,
   percentage,
@@ -56,6 +58,7 @@ export default {
   name: 'CalculatorInput',
 
   data: () => ({
+    columnConsts,
     mathOperators: [
       AC,
       percentage,
