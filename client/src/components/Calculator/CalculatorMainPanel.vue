@@ -1,33 +1,41 @@
 <template>
-  <v-card
-    class="mx-auto"
-    max-width="calc(28.5% - 49px)"
-  >
-    <v-card-text>
-      <CalculatorResult
-        :result="result"
-      />
+    <v-container>
+    <v-row>
+      <v-col :md="6">
+        <v-card
+          :class="['mx-auto', $style.calculatorCard]"
+        >
+          <v-card-text>
+            <CalculatorResult
+              :result="result"
+            />
 
-      <v-tabs v-model="tab">
-        <v-tab key="keys">Teclas</v-tab>
-        <v-tab key="inputs">Ingresar</v-tab>
-      </v-tabs>
-      
-      <v-tabs-items v-model="tab">
-        <v-tab-item key="keys">
-          <CalculatorKeys
-            @key-change="handleCalculation"
-          />
-        </v-tab-item>
+            <v-tabs v-model="tab">
+              <v-tab key="keys">Teclas</v-tab>
+              <v-tab key="inputs">Ingresar</v-tab>
+            </v-tabs>
+            
+            <v-tabs-items v-model="tab">
+              <v-tab-item key="keys">
+                <CalculatorKeys
+                  @key-change="handleCalculation"
+                />
+              </v-tab-item>
 
-        <v-tab-item key="inputs">
-          <CalculatorInput
-            @input-change="handleCalculation"
-          />
-        </v-tab-item>
-      </v-tabs-items>
-    </v-card-text>
-  </v-card>
+              <v-tab-item key="inputs">
+                <CalculatorInput
+                  @input-change="handleCalculation"
+                />
+              </v-tab-item>
+            </v-tabs-items>
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col :md="6">
+        <CalculatorOperationsTable :items="operations" />
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
@@ -36,6 +44,8 @@ import CalculatorInput from './CalculatorInput';
 import CalculatorKeys from './CalculatorKeys';
 import CalculatorResult from './CalculatorResult';
 import CalculatorConsts from '../../util/Constants/CalculatorConstants';
+import CalculatorOperationsTable from './CalculatorOperationsTable';
+import { mapActions, mapState } from 'vuex';
 
 const {
   AC,
@@ -56,19 +66,32 @@ export default {
     CalculatorInput,
     CalculatorKeys,
     CalculatorResult,
+    CalculatorOperationsTable,
   },
 
   data: () => ({
     buildTree: {},
     currentOperation: [],
     operatorSelected: false,
-    operations: [],
     pendingOperation: false,
     result: '',
     tab: 'keys',
   }),
 
+  computed: mapState('operations', {
+    operations: state => state.operations,
+  }),
+
+  async mounted() {
+    await this.fetchOperations();
+  },
+
   methods: {
+    ...mapActions('operations', [
+      'fetchOperations',
+      'updateOperations',
+    ]),
+
     basicMathOperations(operator) {
       // eslint-disable-next-line
       const { currentOperation, currentResult } = this.handleMathOperation(
@@ -81,8 +104,8 @@ export default {
       this.result = currentResult;
     },
 
-    calculateOperation(operationBuilt, operationType) {
-      const [num1, num2] = operationBuilt.split(operationType);
+    calculateOperation(operationBuilt, { operator: operationType }) {
+      const [{ num: num1 }, { num: num2 }] = operationBuilt.filter((op) => !op.operator);
       
       const arithmeticOperator = {
         [addition]: (x, y) => x + y,
@@ -95,62 +118,64 @@ export default {
       return arithmeticOperator[operationType](+num1, +num2);
     },
 
-    calculatePreCompleteOperation() {
+    async calculateInCompleteOperation() {
       let currentOperation;
       let currentResult;
 
-      const [firstNumber] = this.currentOperation;
-      currentOperation = [...this.currentOperation, firstNumber];
-      this.operations = this.getOperationStructureToBuildTree(currentOperation);
+      const [{ num }] = this.currentOperation;
+      currentOperation = [...this.currentOperation, { num }];
+      const operationStructure = this.getOperationStructureTransformed(currentOperation);
+      await this.updateOperations(operationStructure);
 
       ({ currentOperation, currentResult } = this.handleMathResult(
         currentOperation,
         this.result,
       ));
 
-      this.buildTreeByOperations(this.operations);
       this.currentOperation = currentOperation;
       this.result = currentResult;
     },
 
-    getOperationStructureToBuildTree(operations) {
-      const traverseOperations = (arr) => (
-        arr.reduce((acc, curr) => {
-          const token = curr;
-          if ([addition, subtract, division, multiply].includes(curr)) {
-            let weight;
+    getOperationStructureTransformed(operations) {
+      const transformOperationsStructure = () => {
+        let incrementNumId = 1;
+        let iterate = 0;
+        const operationsArray = [];
+        const operationObj = {};
 
-            switch (curr) {
-              case multiply:
-                weight = 1;
-                break;
-              case division:
-                weight = 1;
-                break;
-              case addition:
-                weight = 2;
-                break;
-              case subtract:
-                weight = 2;
-                break;
-            }
-            
-            acc.push({ token, weight });
+        operations.forEach((operation) => {
+          if (operation.num) {
+            operationObj[`num${incrementNumId}`] = operation.num;
+            incrementNumId += 1;
           } else {
-            acc.push({ token, weight: 3 });
+            operationObj.operator = operation.operator;
           }
-        }, [])
-      );
+
+          iterate += 1;
+          if (iterate === 3) {
+            incrementNumId = 1;
+            iterate = 0;
+            operationsArray.push(operationObj);
+          }
+        });
+
+        return operationsArray;
+      };
 
       if (!this.operations.length) {
-        return traverseOperations(operations);
+        return transformOperationsStructure(operations);
       }
       
-      const [, operator, secondNumber] = operations;
-      return traverseOperations([...this.operations, operator, secondNumber]);
+      const [firstNumber, operator, secondNumber] = operations;
+      return transformOperationsStructure([
+        ...this.operations,
+        firstNumber,
+        operator,
+        secondNumber,
+      ]);
     },
 
-    handleCalculation(param) {
+    async handleCalculation(param) {
       let paramCloned = cloneDeep(param);
       if (typeof paramCloned === 'object') {
         const { operator } = paramCloned;
@@ -160,7 +185,15 @@ export default {
             number1,
             number2,
           } = paramCloned;
-          this.currentOperation = [number1, operator, number2];
+
+          this.currentOperation = [{
+            num: number1
+          }, {
+            operator
+          }, {
+            num: number2 
+          }];
+
           this.operations = [...this.currentOperation];
           this.pendingOperation = true;
           paramCloned = equal;
@@ -177,20 +210,20 @@ export default {
           break;
         case negacion:
           if (this.currentOperation.length <= 1) {
-            let num = this.currentOperation.shift();
+            let { num } = this.currentOperation.shift();
             num = -num;
             this.currentOperation.unshift(num);
           } else if (this.currentOperation.length === 3) {
-            let num = this.currentOperation.pop();
+            let { num } = this.currentOperation.pop();
             num = -num;
-            this.currentOperation.push(num);
+            this.currentOperation.push({ num: num });
           }
 
           this.result = String(-this.result);
           break;
         case percentage:
           if (this.currentOperation.length === 2) {
-            this.calculatePreCompleteOperation();
+            await this.calculateInCompleteOperation();
           }
 
           // eslint-disable-next-line
@@ -222,12 +255,13 @@ export default {
               this.result,
             ));
 
-            this.operations = this.getOperationStructureToBuildTree(this.currentOperation);
-            this.buildTreeByOperations(this.operations);
+            const operationStructure = this.getOperationStructureTransformed(this.currentOperation);
+            await this.updateOperations(operationStructure);
+
             this.currentOperation = currentOperation;
             this.result = currentResult;
           } else if (this.currentOperation.length === 2) {
-            this.calculatePreCompleteOperation();
+            await this.calculateInCompleteOperation();
           }
 
           this.pendingOperation = this.currentOperation.length === 3;
@@ -242,16 +276,16 @@ export default {
 
           this.result += String(param);
           if (this.result.length === 1 && this.result.startsWith(point)) {
-            this.result = '0' + this.result;
+            this.result = 0 + this.result;
           }
 
           if (!this.currentOperation.length) {
-            this.currentOperation.push(param);
+            this.currentOperation.push({ num: param });
           } else if (this.currentOperation.length === 1 || this.currentOperation.length === 3) {
             this.currentOperation.pop();
-            this.currentOperation.push(+this.result);
+            this.currentOperation.push({ num: +this.result });
           } else if (this.currentOperation.length === 2) {
-            this.currentOperation.push(+this.result);
+            this.currentOperation.push({ num: +this.result });
           }
 
           this.pendingOperation = this.currentOperation.length === 3;
@@ -271,7 +305,7 @@ export default {
       this.operatorSelected = true;
       if (!currentOperation.length) {
         return {
-          currentOperation: ['0', mathSymbol],
+          currentOperation: [{ num: 0 }, { operator: mathSymbol }],
           currentResult,
         };
       }
@@ -281,10 +315,10 @@ export default {
       if (operator === mathSymbol) return { currentOperation, currentResult };
 
       if (!currentOperation.includes(mathSymbol)) {
-        currentOperation = [...currentOperation, mathSymbol];
+        currentOperation = [...currentOperation, { operator: mathSymbol }];
       } else {
         this.operatorSelected = false;
-        currentOperation = [...currentOperation, currentResult];
+        currentOperation = [...currentOperation, { num: currentResult }];
       }
 
       this.pendingOperation = currentOperation.length === 3;
@@ -303,12 +337,12 @@ export default {
           division,
           multiply,
           percentage
-        ].includes(item);
+        ].includes(item.operator);
       });
-      const { result } = this.resultOperator(currentOperation, operator);
+      const { result } = this.getResultOperation(currentOperation, operator);
 
       currentResult = result;
-      currentOperation = [currentResult];
+      currentOperation = [{ num: currentResult }];
       this.operatorSelected = false;
 
       return {
@@ -324,9 +358,9 @@ export default {
       this.result = '';
     },
 
-    resultOperator(currentOperation, operator) {
+    getResultOperation(currentOperation, operator) {
       const operationResult = this.calculateOperation(
-        currentOperation.join(''),
+        currentOperation,
         operator,
       );
 
@@ -337,3 +371,8 @@ export default {
   }
 };
 </script>
+<style module>
+.calculatorCard {
+  width: 75%;
+}
+</style>
