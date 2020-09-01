@@ -45,7 +45,7 @@
         class="text-center"
         cols="12"
       >
-        {{ new Date().getFullYear() }} — <strong>Author: Harry Muir</strong>
+        {{ new Date().getFullYear() }} — <strong>Autor: Harry Muir</strong>
       </v-col>
     </v-footer>
   </v-app>
