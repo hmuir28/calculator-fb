@@ -1,5 +1,7 @@
 # General Information
-This project was implemented as part of my university student duties, it is a simple calculator with a firebase database. The firebase data stores the structure of a simple arithmetic operation, for example:
+This project was implemented as part of my university student duties, it is a simple calculator with a firebase database and a validator of regular expressions for email, date and DNI formats.
+
+The data stored in Firebase is regarding the structure of simple arithmetic operations, for example:
 
 ```
 num1 operator num2
