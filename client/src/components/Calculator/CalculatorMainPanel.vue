@@ -227,11 +227,11 @@ export default {
           if (this.currentOperation.length <= 1) {
             let { num } = this.currentOperation.shift();
             num = -num;
-            this.currentOperation.unshift(num);
+            this.currentOperation.unshift({ num });
           } else if (this.currentOperation.length === 3) {
             let { num } = this.currentOperation.pop();
             num = -num;
-            this.currentOperation.push({ num: num });
+            this.currentOperation.push({ num });
           }
 
           this.result = String(-this.result);
