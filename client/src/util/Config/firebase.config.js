@@ -4,10 +4,10 @@ import 'firebase/firestore'
 
 // firebase init - configuration credentials
 const firebaseConfig = {
-  apiKey: 'AIzaSyBL5G_g4WIWZ-bzgFZwhednd6oncBHMPwE',
-  databaseURL: 'https://calculator-b25f2.firebaseio.com',
-  projectId: 'calculator-b25f2',
-  appId: '1:69513791964:web:c55a594ebc50978631a719',
+  apiKey: '',
+  databaseURL: '',
+  projectId: '',
+  appId: '',
 }
 firebase.initializeApp(firebaseConfig)
 
