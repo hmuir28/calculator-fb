@@ -4,10 +4,37 @@
       app
       :class="$style.headerContainer"
     >
+      <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
+
       <h1>Universidad Americana</h1>
     </v-app-bar>
+
+    <v-navigation-drawer
+      v-model="drawer"
+      absolute
+      temporary
+    >
+      <v-list
+        nav
+        dense
+      >
+        <v-list-item-group
+          :active-class="$style.asideContainer"
+        >
+          <v-list-item @click.prevent="navigateTo('')">
+            <v-list-item-title>Calculadora</v-list-item-title>
+          </v-list-item>
+
+          <v-list-item @click.prevent="navigateTo('regex')">
+            <v-list-item-title>Validador RegEx</v-list-item-title>
+          </v-list-item>
+
+        </v-list-item-group>
+      </v-list>
+    </v-navigation-drawer>
+
     <v-main :class="$style.container">
-      <CalculatorMainPanel />
+      <router-view></router-view>
     </v-main>
 
     <v-footer
@@ -25,13 +52,17 @@
 </template>
 
 <script>
-import CalculatorMainPanel from './components/Calculator/CalculatorMainPanel';
-
 export default {
   name: 'App',
 
-  components: {
-    CalculatorMainPanel,
+  data: () => ({
+    drawer: false,
+  }),
+
+  methods: {
+    navigateTo(name) {
+      this.$router.push(`/${name}`).catch(() => {});
+    }
   },
 };
 </script>
@@ -51,5 +82,15 @@ export default {
 
 .headerContainer h1 {
   color: #ffffff;
+}
+
+.headerContainer span {
+  color: #ffffff;
+}
+
+.asideContainer {
+  background-color: #ff0000c7;
+  color: #ffffff !important;
+  caret-color: #ffffff !important;
 }
 </style>
