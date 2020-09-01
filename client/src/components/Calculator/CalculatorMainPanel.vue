@@ -1,5 +1,5 @@
 <template>
-    <v-container :class="$style.mainPanelContainer">
+  <v-container :class="$style.mainPanelContainer">
     <v-row>
       <v-col :md="6">
         <v-card

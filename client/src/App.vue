@@ -26,7 +26,7 @@
           </v-list-item>
 
           <v-list-item @click.prevent="navigateTo('regex')">
-            <v-list-item-title>Validador RegEx</v-list-item-title>
+            <v-list-item-title>Validador RegExp</v-list-item-title>
           </v-list-item>
 
         </v-list-item-group>

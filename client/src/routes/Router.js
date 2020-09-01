@@ -16,7 +16,7 @@ export const RouterOptions = {
     },
     {
       path: '/regex',
-      name: 'RegEx',
+      name: 'RegExp',
       component: RegExValidatorMainPanel,
     },
   ],
